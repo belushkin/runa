@@ -1,8 +1,7 @@
 from rest_framework.views import APIView
 from django.http import HttpResponse, JsonResponse
 from rest_framework.parsers import JSONParser
-from rest_framework.response import Response
-from .serializers import CategorySerializer
+from .serializers import CategorySerializer, CategoriesSerializer
 from .models import Category
 
 
@@ -35,5 +34,5 @@ class CategoryDetail(APIView):
         except Category.DoesNotExist:
             return HttpResponse(status=404)
 
-        serializer = CategorySerializer(category)
+        serializer = CategoriesSerializer(category)
         return JsonResponse(serializer.data)

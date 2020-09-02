@@ -29,15 +29,15 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ['name', 'children']
 
-    def to_representation(self, instance):
-
-        if isinstance(instance, Category):
-            ret = super().to_representation(instance)
-            if not len(ret['children']):
-                del ret['children']
-            return ret
-
-        return instance
+    # def to_representation(self, instance):
+    #
+    #     if isinstance(instance, Category):
+    #         ret = super().to_representation(instance)
+    #         if not len(ret['children']):
+    #             del ret['children']
+    #         return ret
+    #
+    #     return instance
 
     def create(self, validated_data):
         validated_data['children'] = list(itertools.chain.from_iterable(validated_data['children']))
@@ -55,18 +55,49 @@ class CategorySerializer(serializers.ModelSerializer):
 
         return category
 
-# class CategoriesSerializer(serializers.ListSerializer):
-#
-#     parents = CategorySerializer(many=True)
-#     children = CategorySerializer(many=True)
-#     siblings = CategorySerializer(many=True)
-#
-#     # def create(self, validated_data):
-#     #     return Category.objects.create(**validated_data)
-#     #
-#     # def update(self, instance, validated_data):
-#     #     instance.name = validated_data.get('name', instance.name)
-#     #     # instance.parent = validated_data.get('parent', instance.code)
-#     #     instance.save()
-#     #
-#     #     return instance
+
+class CategoryShortSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
+
+
+class CategoriesSerializer(serializers.ModelSerializer):
+    parents = serializers.SerializerMethodField(method_name="get_parents")
+    children = serializers.SerializerMethodField(method_name="get_children")
+    siblings = serializers.SerializerMethodField(method_name="get_siblings")
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'parents', 'children', 'siblings']
+
+    def get_parents(self, obj):
+        serializer = CategoryShortSerializer(
+            instance=self.get_parents_tree(obj),
+            many=True
+        )
+        return serializer.data
+
+    def get_children(self, obj):
+        serializer = CategoryShortSerializer(
+            instance=obj.children.all(),
+            many=True
+        )
+        return serializer.data
+
+    def get_siblings(self, obj):
+        serializer = CategoryShortSerializer(
+            instance=Category.objects.filter(parent=obj.parent).exclude(pk=obj.pk),
+            many=True
+        )
+        return serializer.data
+
+    def get_parents_tree(self, obj):
+        categories = []
+        category = obj.parent
+        while category is not None:
+            categories.append(category)
+            category = category.parent
+
+        return categories
