@@ -19,6 +19,6 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('categories', views.CategoriesList.as_view()),
-    path('categories/<int:pk>/', views.CategoryDetail.as_view()),
+    path('categories', views.CategoriesList.as_view(), name='add_categories'),
+    path('categories/<int:pk>/', views.CategoryDetail.as_view(), name='list_category'),
 ]

@@ -7,14 +7,6 @@ from .models import Category
 
 class CategoriesList(APIView):
 
-    def get(self, request):
-        categories = Category.objects.filter(parent=None)
-        serializer = CategorySerializer(categories, many=True) \
-            if len(categories) > 1 else \
-            CategorySerializer(categories.first())
-
-        return JsonResponse(serializer.data, safe=False)
-
     def post(self, request):
         data = JSONParser().parse(request)
         serializer = CategorySerializer(data=data)
@@ -28,7 +20,7 @@ class CategoriesList(APIView):
 
 class CategoryDetail(APIView):
 
-    def get(self, request, pk, format=None):
+    def get(self, request, pk):
         try:
             category = Category.objects.get(pk=pk)
         except Category.DoesNotExist:

@@ -1,17 +1,12 @@
 import itertools
 
 from rest_framework import serializers
+from django.db import transaction
 from .models import Category
 from common.util import flatten
 
 
 class ChildListingField(serializers.RelatedField):
-
-    def to_representation(self, value):
-        serializer = CategorySerializer(
-            instance=value
-        )
-        return serializer.data
 
     def to_internal_value(self, data):
         try:
@@ -23,24 +18,15 @@ class ChildListingField(serializers.RelatedField):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    children = ChildListingField(many=True, queryset=Category.objects.all())
+    children = ChildListingField(many=True, queryset=Category.objects.all(), required=False)
 
     class Meta:
         model = Category
         fields = ['name', 'children']
 
-    # def to_representation(self, instance):
-    #
-    #     if isinstance(instance, Category):
-    #         ret = super().to_representation(instance)
-    #         if not len(ret['children']):
-    #             del ret['children']
-    #         return ret
-    #
-    #     return instance
-
+    @transaction.atomic()
     def create(self, validated_data):
-        validated_data['children'] = list(itertools.chain.from_iterable(validated_data['children']))
+        validated_data['children'] = list(itertools.chain.from_iterable(validated_data.get('children', [])))
 
         category = Category(name=validated_data.get('name'))
         category.save()
@@ -74,7 +60,7 @@ class CategoriesSerializer(serializers.ModelSerializer):
 
     def get_parents(self, obj):
         serializer = CategoryShortSerializer(
-            instance=self.get_parents_tree(obj),
+            instance=self._get_parents_tree(obj),
             many=True
         )
         return serializer.data
@@ -93,7 +79,7 @@ class CategoriesSerializer(serializers.ModelSerializer):
         )
         return serializer.data
 
-    def get_parents_tree(self, obj):
+    def _get_parents_tree(self, obj):
         categories = []
         category = obj.parent
         while category is not None:
