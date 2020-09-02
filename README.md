@@ -13,6 +13,7 @@ Create a simple Categories API that stores category tree to database and returns
 - Django 3.0.7
 - Django Rest Framework 3.11
 - Docker Compose
+- PostgreSQL
 
 ### Prerequisites
 Docker.io and docker-compose must be installed in the system in order to be able to use the app.
