@@ -11,11 +11,10 @@ class CategoryTests(APITestCase):
         Ensure we can create a new categories objects.
         """
         # given
-        url = reverse('add_categories')
         data = {'name': 'c1', 'children': [{'name': 'c2'}, {'name': 'c3'}]}
 
         # when
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(reverse('add_categories'), data, format='json')
 
         # then
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -27,12 +26,11 @@ class CategoryTests(APITestCase):
         Ensure we can't create a new category object with the same name.
         """
         # given
-        url = reverse('add_categories')
         data = {'name': 'c1'}
 
         # when
-        self.client.post(url, data, format='json')
-        response = self.client.post(url, data, format='json')
+        self.client.post(reverse('add_categories'), data, format='json')
+        response = self.client.post(reverse('add_categories'), data, format='json')
 
         # then
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -42,11 +40,10 @@ class CategoryTests(APITestCase):
         Ensure we can create category without children
         """
         # given
-        url = reverse('add_categories')
         data = {"name": "c1"}
 
         # when
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(reverse('add_categories'), data, format='json')
 
         # then
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -57,33 +54,32 @@ class CategoryTests(APITestCase):
         Ensure we would not create anything if data is wrong
         """
         # given
-        url = reverse('add_categories')
         data = {"title": "c1", "siblings": []}
 
         # when
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(reverse('add_categories'), data, format='json')
 
         # then
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_create_category_and_check_response(self):
+    def test_create_categories_and_check_structure_of_categories(self):
         """
-        Ensure we would not create anything if data is wrong
+        Ensure the returned structure
         """
         # given
-        create_url = reverse('add_categories')
-        retrieve_url = reverse('list_category', args=[2])
         with open('runa/fixtures/fixture.json') as json_file:
             data = json.load(json_file)
-
         with open('runa/fixtures/2.json') as json_file:
             second_category = json.load(json_file)
+        with open('runa/fixtures/8.json') as json_file:
+            eight_category = json.load(json_file)
 
         # when
-        self.client.post(create_url, data, format='json')
-        response = self.client.get(retrieve_url)
-        print(response.content)
-        print(second_category)
+        self.client.post(reverse('add_categories'), data, format='json')
+        second_response = self.client.get(reverse('list_category', args=[2]))
+        eight_response = self.client.get(reverse('list_category', args=[8]))
+
         # then
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertJSONEqual(response.content, second_category)
+        self.assertEqual(second_response.status_code, status.HTTP_200_OK)
+        self.assertJSONEqual(second_response.content, second_category)
+        self.assertJSONEqual(eight_response.content, eight_category)
