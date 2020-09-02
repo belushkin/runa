@@ -7,8 +7,18 @@ from common.util import flatten
 
 
 class ChildListingField(serializers.RelatedField):
+    """
+    Children field serializer is used for flattening incoming nested tree to flat list with previous parent
+    """
 
     def to_internal_value(self, data):
+        """
+        Hook for transforming representation to internal values, used also for validation
+        :arg
+            data (:obj:`dict`): children categories
+        :raises:
+            serializers.ValidationError: if name is empty or missed
+        """
         try:
             return flatten(data)
         except ValueError:
@@ -18,6 +28,11 @@ class ChildListingField(serializers.RelatedField):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """
+    Serializer is used when new json with categories is submitted to the API
+    Used for POST request
+    """
+
     children = ChildListingField(many=True, queryset=Category.objects.all(), required=False)
 
     class Meta:
@@ -26,8 +41,15 @@ class CategorySerializer(serializers.ModelSerializer):
 
     @transaction.atomic()
     def create(self, validated_data):
+        """
+        After validation phase, this method operates on valid data and store categories to the storage
+        This method is transactional
+        :arg
+            validated_data (:obj:`dict`): dict with flatten and prepared data for storing
+        :returns:
+            Category model object
+        """
         validated_data['children'] = list(itertools.chain.from_iterable(validated_data.get('children', [])))
-
         category = Category(name=validated_data.get('name'))
         category.save()
         categories = {category.name: category}
@@ -43,6 +65,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class CategoryShortSerializer(serializers.ModelSerializer):
+    """
+    Short serializer is used for representation of the each category
+    """
 
     class Meta:
         model = Category
@@ -50,6 +75,11 @@ class CategoryShortSerializer(serializers.ModelSerializer):
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
+    """
+    Short serializer is used for representation of the each category
+    Used for GET request
+    """
+
     parents = serializers.SerializerMethodField(method_name="get_parents")
     children = serializers.SerializerMethodField(method_name="get_children")
     siblings = serializers.SerializerMethodField(method_name="get_siblings")

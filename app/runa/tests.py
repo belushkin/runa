@@ -83,3 +83,17 @@ class CategoryTests(APITestCase):
         self.assertEqual(second_response.status_code, status.HTTP_200_OK)
         self.assertJSONEqual(second_response.content, second_category)
         self.assertJSONEqual(eight_response.content, eight_category)
+
+    def test_cant_create_category_with_empty_name(self):
+        """
+        Ensure we cant create a new category with empty name
+        """
+        # given
+        data = {'name': ''}
+
+        # when
+        response = self.client.post(reverse('add_categories'), data, format='json')
+
+        # then
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Category.objects.count(), 0)
