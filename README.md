@@ -4,7 +4,7 @@ Create a simple Categories API that stores category tree to database and returns
 
 ![alt text](./app/assets/images/image.png)
 
-### Requirements of the assessment:
+### Requirements of the assignment
 - Use Python 3.4+ and Django Framework (or Django Rest Framework). 
 - Use of any other third-party libraries or Django extensions (mptt, treebread, etc) is prohibited.
 
@@ -18,7 +18,7 @@ Create a simple Categories API that stores category tree to database and returns
 Docker.io and docker-compose must be installed in the system in order to be able to use the app.
 OS Linux
 
-## How to setup the application:
+## How to setup the application
 ```bash
 docker-compose up
 docker-compose stop
